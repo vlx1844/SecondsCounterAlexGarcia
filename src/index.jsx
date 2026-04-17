@@ -1,62 +1,55 @@
-import React, { useState, useEffect } from "react";
-import ReactDOM from "react-dom";
+import React from "react";
+import ReactDOM from "react-dom/client";
 import SecondsCounter from "./SecondsCounter";
 
-const App = () => {
-	const [timer, setTimer] = useState(0);
-	const [active, setActive] = useState(true);
-	const [isCountdown, setIsCountdown] = useState(false);
-	const [alertTime, setAlertTime] = useState(null);
+let count = 0;
+let running = true;
+let countdownMode = false;
+let alertLimit = null;
 
-	useEffect(() => {
-		let interval = null;
-		if (active) {
-			interval = setInterval(() => {
-				setTimer(prev => {
-					const nextValue = isCountdown ? prev - 1 : prev + 1;
-					
-					
-					if (nextValue === alertTime) {
-						alert(`¡Se ha alcanzado el tiempo programado: ${alertTime}!`);
-					}
+const root = ReactDOM.createRoot(document.getElementById('app'));
 
-					
-					if (isCountdown && nextValue <= 0) {
-						setActive(false);
-						return 0;
-					}
-					return nextValue;
-				});
-			}, 1000);
-		}
-		return () => clearInterval(interval);
-	}, [active, isCountdown, alertTime]);
+const updateCounter = () => {
+    if (running) {
+        if (countdownMode && count > 0) {
+            count--;
+        } else if (!countdownMode) {
+            count++;
+        }
 
-	return (
-		<div className="text-center mt-5">
-			<SecondsCounter seconds={timer} />
-			
-			<div className="controls mt-4">
-				<button className="btn btn-danger m-1" onClick={() => setActive(false)}>Parar</button>
-				<button className="btn btn-success m-1" onClick={() => setActive(true)}>Resumir</button>
-				<button className="btn btn-warning m-1" onClick={() => { setTimer(0); setIsCountdown(false); }}>Reiniciar</button>
-			</div>
+        if (alertLimit !== null && count === alertLimit) {
+            alert("Tiempo alcanzado: " + alertLimit);
+            alertLimit = null; 
+        }
+    }
 
-			<div className="inputs mt-4 p-3 border rounded d-inline-block bg-light">
-				<div className="mb-2">
-					<input type="number" placeholder="Cuenta regresiva desde..." 
-						onChange={(e) => { 
-							setTimer(parseInt(e.target.value)); 
-							setIsCountdown(true); 
-						}} />
-				</div>
-				<div>
-					<input type="number" placeholder="Alerta en el segundo..." 
-						onChange={(e) => setAlertTime(parseInt(e.target.value))} />
-				</div>
-			</div>
-		</div>
-	);
+    root.render(
+        <div className="container text-center mt-5">
+            <SecondsCounter seconds={count} />
+            
+            <div className="btn-group mt-3">
+                <button className="btn btn-outline-secondary" onClick={() => running = false}>Parar</button>
+                <button className="btn btn-outline-secondary" onClick={() => running = true}>Continuar</button>
+                <button className="btn btn-outline-secondary" onClick={() => { count = 0; countdownMode = false; }}>Reiniciar</button>
+            </div>
+
+            <div className="d-flex justify-content-center gap-3 mt-4">
+                <div>
+                    <label className="d-block small fw-bold text-secondary">Cuenta atrás desde:</label>
+                    <input type="number" className="form-control border-secondary" 
+                        onChange={(e) => { 
+                            count = parseInt(e.target.value) || 0; 
+                            countdownMode = true; 
+                        }} />
+                </div>
+                <div>
+                    <label className="d-block small fw-bold text-secondary">Alerta en segundo:</label>
+                    <input type="number" className="form-control border-secondary" 
+                        onChange={(e) => alertLimit = parseInt(e.target.value)} />
+                </div>
+            </div>
+        </div>
+    );
 };
 
-ReactDOM.render(<App />, document.querySelector("#app"));
+setInterval(updateCounter, 1000);
