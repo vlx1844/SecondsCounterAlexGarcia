@@ -15,12 +15,12 @@ const App = () => {
 				setTimer(prev => {
 					const nextValue = isCountdown ? prev - 1 : prev + 1;
 					
-					// Lógica de Alerta
+					
 					if (nextValue === alertTime) {
 						alert(`¡Se ha alcanzado el tiempo programado: ${alertTime}!`);
 					}
 
-					// Detener si llega a 0 en cuenta regresiva
+					
 					if (isCountdown && nextValue <= 0) {
 						setActive(false);
 						return 0;
